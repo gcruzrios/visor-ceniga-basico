@@ -59,7 +59,7 @@
 
         html,
         body,
-        #map {
+        #my-map {
             width: 100%;
             height: 100%;
         }
@@ -159,140 +159,293 @@
     
     
     </div>
-    <div id="map">
+    <div id="my-map">
 
     </div>
-
     <script>
-        var map = L.map('map', {
-            center: [9.2, -84], // CR
-            zoom: 8
-        });
+       
 
-        var defaultBase = L.tileLayer.provider('OpenStreetMap').addTo(map);
-
-        var baseLayers = {
-            'OSM': defaultBase,
-            'HOT':L.tileLayer.provider('OpenStreetMap.HOT'),
-            //'Stamen Toner':L.tileLayer.provider('Stamen.TonerLite'),
-            'USGS TNM': L.tileLayer.provider('USGSTNM'),
-            'ESRI Imagery': L.tileLayer.provider('Esri.WorldImagery'),
-            'ESRI Ocean Basemap': L.tileLayer.provider('Esri.OceanBasemap'),
-            'OSM Topo': L.tileLayer.provider('OpenTopoMap')
-        };
-
-
-        //Using a relative url to call layer instead of http
-        var CantonesIndivLayer = L.tileLayer.wms('http://geomapa.tk:8080/geoserver/costarica-snit/wms?', {
-            layers: 'Cantones_de_Costa_Rica',
-            format: 'image/png',
-            opacity: 0.5,
-            tiled: 'true'
-        });
-
-        var options = {
-            transparent: 'true',
-            format: 'image/png',
-            opacity: 0.5,
-            tiled: 'true'
-            //info_format: 'text/html'
-        };
-
-        //Using a relative url to call layer instead of http
-        var source = L.WMS.source('http://geomapa.tk:8080/geoserver/costarica-geoinn/wms?', options);
-        var CantonesLayer = source.getLayer('costarica-geoinn:Cantones_de_Costa_Rica');
-        var DistritosLayer = source.getLayer('costarica-geoinn:Distritos_de_Costa_Rica');
-        var ProvinciasLayer = source.getLayer('costarica-geoinn:Provincias_de_Costa_Rica');
-
-        var source = L.WMS.source('http://geos.snitcr.go.cr/be/IGN_5/wms?', options);
-        var CantonesSNIT = source.getLayer('IGN_5:limitecantonal_5k');
-        var DistritosSNIT = source.getLayer('IGN_5:limitedistrital_5k');
-        var ProvinciasSNIT = source.getLayer('IGN_5:limiteprovincial_5k');
-
-        var source = L.WMS.source('http://geos.snitcr.go.cr/be/IGN_GNSS/wms?', options);
-        var GNSS_SNIT = source.getLayer('IGN_GNSS:estaciones_gnss');
-
-        //Load OSM Buildings then disable it on first load; can only be viewed at certain scales
-        var osmb = new OSMBuildings(map).load();
-        map.removeLayer(osmb);
-
-        //Overlay grouped layers    
-        var groupOverLays = {
-            "Example Layers": {
-                "Provincias": ProvinciasLayer,
-                "Cantones": CantonesLayer,
-                "Distritos": DistritosLayer,
-                
-            },
-            "SNIT":{
-                "Provincias": ProvinciasSNIT,
-                "Cantones": CantonesSNIT,
-                "Distritos": DistritosSNIT,
-                "Estaciones GNSS": GNSS_SNIT,
+        const geoserverProxy = {
+        forwardPath: (req, res) => {
+            return url.parse(req.originalUrl).path
             }
-
-        };
-
-        //add layer switch control
-        L.control.groupedLayers(baseLayers, groupOverLays).addTo(map);
-
-
-        //add scale bar to map
-        L.control.scale({
-            position: 'bottomleft'
-        }).addTo(map);
-
-        // Overview mini map
-        var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
-        });
-
-        var miniMap = new L.Control.MiniMap(Esri_WorldTopoMap, {
-            toggleDisplay: true,
-            minimized: false,
-            position: 'bottomleft'
-        }).addTo(map);
-
-        //define Drawing toolbar options
-        var options = {
-            position: 'topleft', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
-            drawMarker: true, // adds button to draw markers
-            drawPolyline: true, // adds button to draw a polyline
-            drawRectangle: true, // adds button to draw a rectangle
-            drawPolygon: true, // adds button to draw a polygon
-            drawCircle: true, // adds button to draw a cricle
-            cutPolygon: true, // adds button to cut a hole in a polygon
-            editMode: true, // adds button to toggle edit mode for all layers
-            removalMode: true, // adds a button to remove layers
-        };
-
-        // add leaflet.pm controls to the map
-        map.pm.addControls(options);
-
-        //Logo position: bottomright
-        var credctrl = L.controlCredits({
-            image: "Images/opengislab_106x23.png",
-            link: "https://www.opengislab.com/",
-            text: "Leaflet map example by Stephanie @ <u>opengislab.com<u/>"
-        }).addTo(map);
-
-//boton RUN button-play
-
-        var button  = document.getElementById("button-play");
-        button.addEventListener('click', run)
-        //console.log("Se hizo click en button play");
-
-        function run(){
-            var zoom = 12;
-            var lat = document.getElementById("lat").value;
-            var lng = document.getElementById("lng").value;
-
-            var marker = L.marker([lat, lng],{}).addTo(map);
-            map.flyTo([lat, lng], zoom);
         }
 
+        
 
-    </script>
+        function getLayers () {
+           //return document.getElementById('layer-input').value
+         }
+ 
+ 
+         const loaded = new Promise((resolve, reject) => window.addEventListener('load', event => resolve(event)))
+ 
+         const makeSelectOption = ({name, title}) => {
+           let option = document.createElement('option')
+           option.value = name 
+           option.innerHTML = title
+           return option
+         }
+         const zoomedOrMoved = (map, cb) => {
+           map.on('zoomend', cb)
+           map.on('moveend', cb)
+         }
+ 
+         function setMapViewFromUrl(map, url) {
+           const lat = url.searchParams.get('lat') || 9.5
+           const lng = url.searchParams.get('lng') || -84
+           const zoomlevel = url.searchParams.get('z') || 8
+           return map.setView(L.latLng(lat, lng), zoomlevel)
+         }
+ 
+         //var geoserver_url = "";
+ 
+ 
+         var globalLayers = [];
+ 
+         loaded
+         .then(_ => xhrGET('http://18.218.14.134:8080/geoserver/wms?service=wms&request=GetCapabilities&version=1.3.0'))
+         .then(result => {
+           const layers = result.responseXML.querySelectorAll("Layer[queryable=\"1\"]")
+           let model = []
+           layers.forEach(node => {
+             model.push({
+               title: node.querySelector('Title').innerHTML,
+               name: node.querySelector('Name').innerHTML
+             })
+           })
+           globalLayers = model;
+           return model 
+         }).then(optionModels => {
+           // set all options from our loaded geoserver layers
+           
+                     
+           //const layerSelection = document.getElementById("layers-selection")
+           //optionModels
+           //  .map(makeSelectOption)
+           //  .forEach(option => layerSelection.appendChild(option))
+           //layerSelection.setAttribute('size', optionModels.length)
+           //layerSelection.addEventListener('change', e => {
+             // get just selected nodes
+             //let selected = []
+             //e.srcElement.childNodes.forEach(n => n.selected ? selected.push(n.value): noOp())
+             //document.getElementById('layer-input').value = selected.join(',')
+           //})
+           
+           //const loadButton = document.getElementById("loadButton")  
+           
+           const tileLayer = L.tileLayer.wms('http://18.218.14.134:8080/geoserver/wms', {
+             layers: getLayers(),
+             format: 'image/png',
+             opacity: 0.8,
+             transparent: 'true',
+             attribution: 'Sourced from LINZ. CC-BY 3.0'
+           })
+ 
+           const map = L.map('my-map', {
+             center: L.latLng(-36.85, 174.76),
+             zoom: 10,
+             continuousWorld: true,
+             worldCopyJump: false,
+           })
+ 
+           L.tileLayer.provider('OpenStreetMap').addTo(map);
+ 
+           setMapViewFromUrl(map, new URL(window.location.href))
+ 
+ 
+           const baseLayers = {
+             //'OpenStreetMap': defaultBase,
+             'OpenStreetMap': L.tileLayer.provider('OpenStreetMap'),
+             'HOT':L.tileLayer.provider('OpenStreetMap.HOT'),
+             'USGS TNM': L.tileLayer.provider('USGSTNM'),
+             'ESRI Imagery': L.tileLayer.provider('Esri.WorldImagery'),
+             'ESRI Ocean Basemap': L.tileLayer.provider('Esri.OceanBasemap'),
+             'OSM Topo': L.tileLayer.provider('OpenTopoMap')
+           };
+ 
+ 
+         var options = {
+             transparent: 'true',
+             format: 'image/png',
+             opacity: 0.8,
+             tiled: 'true'
+             //info_format: 'text/html'
+         };
+         //Using a relative url to call layer instead of http
+         
+ 
+             
+         var source = L.WMS.source('http://18.218.14.134:8080/geoserver/wms?', options);
+        // var source = L.WMS.source('http://geomapa.tk:8080/geoserver/wms?', options);
+ 
+         //
+         
+            
+         var groupOverLays = {
+             "Ceniga": {
+                      
+             },
+         };
+ 
+         const layer_list = {"DTA":{}}
+ 
+         globalLayers.forEach((layer) => {
+             
+             groupOverLays.Ceniga[`${layer.title}`]= source.getLayer(`${ layer.name }`)
+                      
+             //Object.defineProperty(layer_list.DTA,`${layer.title}`,{value: source2.getLayer(`${ layer.name }`)})
+         });
+ 
+ 
+          L.control.groupedLayers(baseLayers, groupOverLays).addTo(map);
+          
+          //add scale bar to map
+         L.control.scale({
+             position: 'bottomleft'
+         }).addTo(map);
+         
+         var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+             attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+         });
+ 
+         const miniMap = new L.Control.MiniMap(Esri_WorldTopoMap, {
+             toggleDisplay: true,
+             minimized: false,
+             position: 'bottomleft'
+         }).addTo(map);
+ 
+         //define Drawing toolbar options
+         var options = {
+             position: 'topleft', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
+             drawMarker: true, // adds button to draw markers
+             drawPolyline: true, // adds button to draw a polyline
+             drawRectangle: true, // adds button to draw a rectangle
+             drawPolygon: true, // adds button to draw a polygon
+             drawCircle: true, // adds button to draw a cricle
+             cutPolygon: true, // adds button to cut a hole in a polygon
+             editMode: true, // adds button to toggle edit mode for all layers
+             removalMode: true, // adds a button to remove layers
+         };
+ 
+         // add leaflet.pm controls to the map
+         map.pm.addControls(options);
+ 
+         //Logo position: bottomright
+         var credctrl = L.controlCredits({
+             image: "./Images/opengislab_106x23.png",
+             link: "https://www.geoinn.com/",
+             text: "Leaflet map example by Stephanie @ <u>opengislab.com<u/>"
+         }).addTo(map);
+ 
+ 
+         var button  = document.getElementById("button-play");
+         button.addEventListener('click', run)
+         //console.log("Se hizo click en button play");
+ 
+         function run(){
+             var zoom = 12;
+             var lat = document.getElementById("lat").value;
+             var lng = document.getElementById("lng").value;
+ 
+             var marker = L.marker([lat, lng],{}).addTo(map);
+             map.flyTo([lat, lng], zoom);
+         }
+ 
+ 
+ 
+           zoomedOrMoved(map, e => {
+             const location = map.getCenter()
+             const zoomlevel = map.getZoom()
+             let url = new URL(window.location.href)
+             url.searchParams.set('z', zoomlevel)
+             url.searchParams.set('lat', location.lat)
+             url.searchParams.set('lng', location.lng)
+             
+             window.history.pushState({path: url.href}, '', url.href);
+           })
+ 
+           map.on('click', e => {
+             console.log('dat click in', e)
+             query(e.latlng.lat, e.latlng.lng)
+               .then(yo => {
+                 console.log('got data for point', e.latlng, yo)
+               })
+               .catch(err => {
+                 console.log('bad request', err)
+               })
+           })
+           map.addLayer(tileLayer)
+ 
+           //loadButton.addEventListener('click', e => {
+           //  tileLayer.setParams({layers: getLayers()})
+           // })
+           
+           window.addEventListener('popstate', e => {
+             const url = new URL(e.state.path)
+             setMapViewFromUrl(map, url)
+           })
+         })
+ 
+         // utillity
+         function xhr (method, url, body) {
+           var xhttp = new XMLHttpRequest()
+           return new Promise((resolve, reject) => {
+             xhttp.onreadystatechange = function() {
+               if (this.readyState == 4) {
+                 if (this.status == 200) resolve(this)
+                 else reject(this)
+               }
+             }
+             xhttp.open(method, url, true);
+             if (method === 'POST') {
+               xhttp.setRequestHeader("content-type", "application/xml")
+               xhttp.send(body)
+             } else {
+               xhttp.send()
+             }
+           })
+         }
+         function xhrGET (url) {
+           return xhr('GET', url)
+         }
+ 
+         function xhrPOST (url, body) {
+           return xhr('POST', url, body)
+         }
+             
+         function noOp () {}
+ 
+ 
+         function query (lat, lng) {
+           var bboxQuery = `
+           <wfs:GetFeature
+             xmlns:ogc="http://www.opengis.net/ogc"
+             xmlns:gml="http://www.opengis.net/gml"
+             xmlns:wfs="http://www.opengis.net/wfs"
+             service="WFS"
+             version="1.1.0"
+             maxFeatures="10"
+             outputFormat="text/xml; subtype=gml/3.1.1">
+             <wfs:Query
+               srsName="EPSG:4326" typeName="ersin-map:parcels-reprojected">
+               <ogc:Filter>
+                 <ogc:BBOX>
+                   <ogc:PropertyName>shape</ogc:PropertyName>
+                   <gml:Envelope srsName="EPSG:4326">
+                     <gml:lowerCorner>${lng - 0.05} ${lat - 0.05}</gml:lowerCorner>
+                     <gml:upperCorner>${lng + 0.05}  ${lat + 0.05}</gml:upperCorner>
+                   </gml:Envelope>
+                 </ogc:BBOX>
+               </ogc:Filter>
+             </wfs:Query>
+           </wfs:GetFeature>`
+           console.log(bboxQuery)
+           return xhrPOST("/geoserver/wfs", bboxQuery)
+         }
+ 
+     </script>
+    
 
 </body>
 
