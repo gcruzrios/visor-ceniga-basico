@@ -204,7 +204,7 @@
          var globalLayers = [];
  
          loaded
-         .then(_ => xhrGET('http://18.218.14.134:8080/geoserver/wms?service=wms&request=GetCapabilities&version=1.3.0'))
+         .then(_ => xhrGET('https://ceniga.go.cr/geoserver/wms?service=wms&request=GetCapabilities&version=1.3.0'))
          .then(result => {
            const layers = result.responseXML.querySelectorAll("Layer[queryable=\"1\"]")
            let model = []
@@ -226,7 +226,6 @@
            //  .forEach(option => layerSelection.appendChild(option))
            //layerSelection.setAttribute('size', optionModels.length)
            //layerSelection.addEventListener('change', e => {
-             // get just selected nodes
              //let selected = []
              //e.srcElement.childNodes.forEach(n => n.selected ? selected.push(n.value): noOp())
              //document.getElementById('layer-input').value = selected.join(',')
@@ -234,7 +233,7 @@
            
            //const loadButton = document.getElementById("loadButton")  
            
-           const tileLayer = L.tileLayer.wms('http://18.218.14.134:8080/geoserver/wms', {
+           const tileLayer = L.tileLayer.wms('https://ceniga.go.cr/geoserver/wms', {
              layers: getLayers(),
              format: 'image/png',
              opacity: 0.8,
@@ -276,7 +275,7 @@
          
  
              
-         var source = L.WMS.source('http://18.218.14.134:8080/geoserver/wms?', options);
+         var source = L.WMS.source('https://ceniga.go.cr/geoserver/wms?', options);
         // var source = L.WMS.source('http://geomapa.tk:8080/geoserver/wms?', options);
  
          //
